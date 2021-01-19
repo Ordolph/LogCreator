@@ -1,0 +1,2 @@
+# LogCreator
+Creates work logs
