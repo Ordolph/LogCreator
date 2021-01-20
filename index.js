@@ -1,10 +1,11 @@
 const inquirer = require("inquirer");
+const fs = require("fs");
 
 const CurrentDate = new Date();
 const Day = CurrentDate.getDate();
 const Month = CurrentDate.getMonth();
 const Year = CurrentDate.getFullYear();
-const FormattedDate = Year + "/" + Month + "/" + Day;
+const FormattedDate = Year + "-" + Month + "-" + Day;
 
 let UserName = String;
 let Client = String;
@@ -13,11 +14,11 @@ let ServerInfo = [];
 let SessionScheduled = String;
 
 const GetServerInfo = async function (CurrentServer) {
-    let ServerName = String;
-    let ServerIp = String;
-    let ServerPurpose = String;
+  let ServerName = String;
+  let ServerIp = String;
+  let ServerPurpose = String;
 
- await inquirer
+  await inquirer
     .prompt([
       {
         type: "input",
@@ -28,44 +29,44 @@ const GetServerInfo = async function (CurrentServer) {
     .then((response) => {
       ServerName = response.ServerName;
     });
-     await inquirer
-        .prompt([
-          {
-            type: "input",
-            message: `What is the IP address of server number ${CurrentServer}?`,
-            name: "ServerIp",
-          },
-        ])
-        .then((response) => {
-          ServerIp = response.ServerIp;
-        });
-         await inquirer
-            .prompt([
-              {
-                type: "input",
-                message: `What is the purpose of server number ${CurrentServer}?`,
-                name: "ServerPurpose",
-              },
-            ])
-            .then((response) => {
-              let ServerPurpose = response.ServerPurpose;
-            });
+  await inquirer
+    .prompt([
+      {
+        type: "input",
+        message: `What is the IP address of server number ${CurrentServer}?`,
+        name: "ServerIp",
+      },
+    ])
+    .then((response) => {
+      ServerIp = response.ServerIp;
+    });
+  await inquirer
+    .prompt([
+      {
+        type: "input",
+        message: `What is the purpose of server number ${CurrentServer}?`,
+        name: "ServerPurpose",
+      },
+    ])
+    .then((response) => {
+      ServerPurpose = response.ServerPurpose;
+    });
 
-              let ServerInfoObj = {
-                Name: ServerName,
-                IP: ServerIp,
-                Purpose: ServerPurpose,
-              };
+  let ServerInfoObj = {
+    Name: ServerName,
+    IP: ServerIp,
+    Purpose: ServerPurpose,
+  };
 
-              ServerInfo.push(ServerInfoObj);
+  ServerInfo.push(ServerInfoObj);
 
-              return;
-            }
+  return;
+};
 
 const forLoop = async function (ServerNum) {
-    for (i=0; i<ServerNum; i++){
-        await GetServerInfo(i + 1);
-    }
+  for (i = 0; i < ServerNum; i++) {
+    await GetServerInfo(i + 1);
+  }
 };
 
 const start = async function () {
@@ -113,7 +114,48 @@ const start = async function () {
                 .then((response) => {
                   SessionScheduled = response.SessionScheduled;
                   forLoop(ServerNum).then(() => {
-                    console.log(UserName + '\n' + Client + '\n' + ServerInfo + '\n' + SessionScheduled);
+                    console.log(
+                      UserName +
+                        Client +
+                        ServerInfo +
+                        SessionScheduled
+                    );
+                    const FileName = FormattedDate + ".txt";
+                    fs.writeFile("~/", FileName, function (err) {
+                      if (err) {
+                        return console.log(err);
+                      } else {
+                        console.log("Log Created.");
+                      }
+                      const Header = `
+                        ${UserName}
+                        ${FormattedDate}
+                        ${Client}
+                        \n`;
+                      fs.appendFile(FileName, Header, (err) => {
+                        if (err) {
+                          console.log(err);
+                          return;
+                        }
+                      });
+                      ServerInfo.forEach(function (i) {
+                        const ServName = `Server Name: ${i.ServerName}`;
+                        const ServIp = `Server IP: ${i.ServerIp}`;
+                        const ServPurp = `Server Purpose: ${i.ServerPurpose}`;
+                        const ServerInfoText = `
+                          ${ServName}
+                          ${ServIp}
+                          ${ServPurp}`;
+
+                        fs.appendFile(FileName, ServerInfoText, (err) => {
+                          if (err) {
+                            console.log(err);
+                            return;
+                          }
+                        });
+                      });
+                    });
+
                     return;
                   });
                 });
@@ -122,4 +164,4 @@ const start = async function () {
     });
 };
 
-start()
+start();
