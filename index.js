@@ -1,10 +1,25 @@
 const inquirer = require("inquirer");
 const fs = require("fs");
+const { left } = require("inquirer/lib/utils/readline");
 
 const CurrentDate = new Date();
-const Day = CurrentDate.getDate();
-const Month = CurrentDate.getMonth();
+const day = CurrentDate.getDate().toString();
+let Day = String;
+const month = CurrentDate.getMonth() + "1";
+let Month = String;
 const Year = CurrentDate.getFullYear();
+
+if (month.length < 2) {
+  Month = "0" + month;
+} else {
+  Month = month;
+}
+if (day.length < 2) {
+  Day = "0" + day;
+} else {
+  Day = day;
+}
+
 const FormattedDate = Year + "-" + Month + "-" + Day;
 
 let UserName = String;
@@ -114,12 +129,6 @@ const start = async function () {
                 .then((response) => {
                   SessionScheduled = response.SessionScheduled;
                   forLoop(ServerNum).then(() => {
-                    console.log(
-                      UserName +
-                        Client +
-                        ServerInfo +
-                        SessionScheduled
-                    );
                     const FileName = FormattedDate + ".txt";
                     fs.writeFile("~/", FileName, function (err) {
                       if (err) {
@@ -128,24 +137,26 @@ const start = async function () {
                         console.log("Log Created.");
                       }
                       const Header = `
-                        ${UserName}
-                        ${FormattedDate}
-                        ${Client}
-                        \n`;
+${UserName}
+${FormattedDate}
+${Client}
+\n`;
                       fs.appendFile(FileName, Header, (err) => {
                         if (err) {
                           console.log(err);
                           return;
                         }
                       });
-                      ServerInfo.forEach(function (i) {
-                        const ServName = `Server Name: ${i.ServerName}`;
-                        const ServIp = `Server IP: ${i.ServerIp}`;
-                        const ServPurp = `Server Purpose: ${i.ServerPurpose}`;
+                      for (i = 0; i < ServerInfo.length; i++) {
+                        const v = ServerInfo[i];
+                        const ServName = `Server Name: ${v.Name}`;
+                        const ServIp = `Server IP: ${v.IP}`;
+                        const ServPurp = `Server Purpose: ${v.Purpose}`;
                         const ServerInfoText = `
-                          ${ServName}
-                          ${ServIp}
-                          ${ServPurp}`;
+    Server ${i + 1}
+      ${ServName}
+      ${ServIp}
+      ${ServPurp} \n`;
 
                         fs.appendFile(FileName, ServerInfoText, (err) => {
                           if (err) {
@@ -153,9 +164,20 @@ const start = async function () {
                             return;
                           }
                         });
+                      }
+                      const Tail = `
+      Steps Taken:
+      \n \n
+      Scheduled Start Time: ${SessionScheduled}
+      Actual Start Time:
+      End Time:`;
+                      fs.appendFile(FileName, Tail, (err) => {
+                        if (err) {
+                          console.log(err);
+                          return;
+                        }
                       });
                     });
-
                     return;
                   });
                 });
